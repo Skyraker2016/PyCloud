@@ -12,7 +12,7 @@ import numpy as np
 
 
 # 绘制词云
-def draw_wordcloud( file_name, background="white", font="简约字体.ttf", masker=None, stopword=[], masker_val=0.5,w=1000,h=1000,maxsize=None,fontstep=2, simple=True):
+def draw_wordcloud( file_name, background="white", font="简约字体.ttf", masker=None, stopword=[], masker_val=0.5,w=1000,h=1000,maxsize=None,fontstep=2, simple=True, usr='local'):
     #读入一个txt文件(尝试三种主流编码：utf-8, gbk, utf-16(unicode))
     try:
         comment_text = open(file_name,'r',encoding="utf-8").read()
@@ -84,7 +84,7 @@ def draw_wordcloud( file_name, background="white", font="简约字体.ttf", mask
     
 
     word_cloud = cloud.generate(cut_text) # 产生词云
-    word_cloud.to_file("data/result.jpg") #保存图片
+    word_cloud.to_file("data/"+usr+"/result.jpg") #保存图片
     #  显示词云图片
     return cloud
 

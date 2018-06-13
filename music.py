@@ -18,15 +18,6 @@ second_param = "010001"
 third_param = "00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8e7"
 forth_param = "0CoJUm6Qyw8W8jud"
 
-lock = threading.Lock()
-
-allstr = ""
-
-songs = {}
-
-file_name = "data/comment.txt"
-img_name = "data/img.jpg"
-f = open(file_name, 'a+')
 
 
 def get_params(p):
@@ -87,8 +78,7 @@ def getsinger(name):
     singer=json.loads(rep)["result"]["artists"][0]   #获取json
     id = singer["id"]
     img = singer['img1v1Url']
-    request.urlretrieve(img,img_name)
-    return id
+    return id, img
 
 def getalbumn(id):
     url = "http://music.163.com/api/artist/albums/"+str(id)+"/"
@@ -105,8 +95,7 @@ def getalbumn(id):
     return list
 
 
-def songsong(id):
-    global lock
+def songsong(id, songs, lock):
     url = "http://music.163.com/api/album/"+str(id)
     req = request.Request(url, headers=headers)
     rep = request.urlopen(req).read().decode('utf8')
@@ -116,10 +105,11 @@ def songsong(id):
     lock.release()
 
 def getsong(l):
-    global songs
+    songs = {}
     threads = []
+    lock = threading.Lock()
     for id in l:
-        t = threading.Thread(target=songsong, args=([id]))
+        t = threading.Thread(target=songsong, args=((id, songs, lock)))
         t.daemon = True
         t.start()
         threads.append(t)
@@ -127,24 +117,29 @@ def getsong(l):
         thread.join(60)
     return songs
 
-def showcomment(song_id):
-    global lock, allstr,f
+def showcomment(song_id, f, lock):
     s = getcomment(song_id)
     lock.acquire()
     f.write(s)
     lock.release()    
 
 
-def singer_craw(name):
-    singerid = getsinger(name)
+def singer_craw(name,usr='local'):
+    f = None
+
+    singerid,imgurl = getsinger(name)
+    request.urlretrieve(imgurl, 'data/'+usr+'/img.jpg')
     albList = getalbumn(singerid)
-    getsong(albList)
+    songs = getsong(albList)
     threads = []
+    f = open('data/'+usr+'/comment.txt','a+')
     f.seek(0)
     f.truncate()
+    print('delete '+'data/'+usr+'/comment.txt')
+    lock = threading.Lock()
     for song_name, song_id in songs.items():
         print(song_name)
-        t = threading.Thread(target=showcomment, args=([song_id]))
+        t = threading.Thread(target=showcomment, args=((song_id,f,lock)))
         t.daemon = True
         t.start()
         threads.append(t)
