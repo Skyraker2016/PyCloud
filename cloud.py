@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #wordcloud生成中文词云
 
-from wordcloud import WordCloud
+from wordcloud import WordCloud, ImageColorGenerator
 import jieba
 import jieba.analyse
 import os
@@ -12,7 +12,7 @@ import numpy as np
 
 
 # 绘制词云
-def draw_wordcloud( file_name, background="white", font="简约字体.ttf", masker=None, stopword=[], masker_val=0.5,w=1000,h=1000,maxsize=100,fontstep=2):
+def draw_wordcloud( file_name, background="white", font="简约字体.ttf", masker=None, stopword=[], masker_val=0.5,w=1000,h=1000,maxsize=None,fontstep=2, simple=True):
     #读入一个txt文件(尝试三种主流编码：utf-8, gbk, utf-16(unicode))
     try:
         comment_text = open(file_name,'r',encoding="utf-8").read()
@@ -27,30 +27,38 @@ def draw_wordcloud( file_name, background="white", font="简约字体.ttf", mask
 
     # 读取背景
     if (masker):
-        im = Image.open(masker).convert('L')
-        ww, hh = im.size
-        if ww > hh:
-            hh = int(hh/ww*w)
-            ww = w
+        im = Image.open(masker)
+        w, h = im.size
+        if (simple):
+            im = im.convert('L')
+            threshold  =  int(masker_val*255)
+            table  =  []
+            for  i  in  range( 256 ):
+                if  i  <  threshold:
+                    table.append(0)
+                else :
+                    table.append( 1 )
+            #  convert to binary image by the table 
+            bim  =  im.point(table, '1' )
+            bim = bim.convert('RGB')
+            # bim.save("masker.jpg")
+            color_mask = np.array(bim)
+            # print(color_mask)
+            image_color = None
         else:
-            ww = int(ww/hh*h)
-            hh = h
-        im.resize((ww,hh))
-        threshold  =  int(masker_val*255)
-        table  =  []
-        for  i  in  range( 256 ):
-            if  i  <  threshold:
-                table.append(0)
-            else :
-                table.append( 1 )
-        #  convert to binary image by the table 
-        bim  =  im.point(table, '1' )
-        bim = bim.convert('RGB')
-        # bim.save("masker.jpg")
-        color_mask = np.array(bim)
-        # print(color_mask)
+            color_mask = np.array(im)
+            image_color = ImageColorGenerator(color_mask)
+
     else:
         color_mask = None
+        image_color = None
+
+    if maxsize==None:
+        if simple:
+            maxsize = w/10
+        else:
+            maxsize = w/20
+
 
     # 词云设置
     cloud = WordCloud(
@@ -70,16 +78,18 @@ def draw_wordcloud( file_name, background="white", font="简约字体.ttf", mask
         #最大号字体
         max_font_size=maxsize,
         #过滤词
-        stopwords=stopword
+        stopwords=stopword,
+        color_func=image_color
     )
     
 
     word_cloud = cloud.generate(cut_text) # 产生词云
-    word_cloud.to_file("result.jpg") #保存图片
+    word_cloud.to_file("data/result.jpg") #保存图片
     #  显示词云图片
+    return cloud
 
 
 
 if __name__ == '__main__':
-
-    draw_wordcloud("Gac.txt","white","简约字体.ttf","gatsby.jpg",maxsize=200,stopword=['我们','他们','一个','什么','已经','可是','然后'])
+    stopword=['我们','他们','一个','什么','已经','可是','然后']
+    wc = draw_wordcloud("data/comment.txt","white","简约字体.ttf","data/img.jpg",stopword=["首歌"])
