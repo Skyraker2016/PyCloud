@@ -33,7 +33,7 @@ def getgBaikePhoto(name, usr="local"):
     if bsObj == None:
         return None
     try:
-        photourl = str(bsObj.find("div", {"class": "summary-pic"}).find("img")).split("\"")[1]
+        photourl = str(bsObj.find("img")).split("\"")[1]
     except AttributeError:
         return None
     urlretrieve(photourl, "data/"+usr+"/img.jpg")
