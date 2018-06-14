@@ -12,7 +12,7 @@ import numpy as np
 
 
 # 绘制词云
-def draw_wordcloud( file_name, background="white", font="简约字体.ttf", masker=None, stopword=[], masker_val=0.5,w=1000,h=1000,maxsize=None,fontstep=2, simple=True, usr='local'):
+def draw_wordcloud( file_name, background="white", font="简约字体.ttf", masker=None, stopword=[], masker_val=0.5,w=2000,h=2000,maxsize=None,fontstep=2, simple=True, usr='local'):
     #读入一个txt文件(尝试三种主流编码：utf-8, gbk, utf-16(unicode))
     stopword.append("首歌")
     try:
@@ -33,10 +33,11 @@ def draw_wordcloud( file_name, background="white", font="简约字体.ttf", mask
         im = Image.open(masker)
         ww, hh = im.size
         if ww<w:
-            h = w/ww*hh
+            hh = int(hh*w/ww)
             ww = w
         w = ww
         h = hh
+        im = im.resize((w,h))
         if (simple):
             im = im.convert('L')
             threshold  =  int(255*masker_val)
@@ -101,4 +102,4 @@ def draw_wordcloud( file_name, background="white", font="简约字体.ttf", mask
 
 if __name__ == '__main__':
     stopword=['我们','他们','一个','什么','已经','可是','然后']
-    wc = draw_wordcloud("data/comment.txt","white","简约字体.ttf","data/img.jpg",stopword=["首歌"])
+    wc = draw_wordcloud("data/local/comment.txt","white","简约字体.ttf","data/local/img.jpg",stopword=["首歌"])

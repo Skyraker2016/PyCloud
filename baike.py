@@ -31,16 +31,16 @@ def getgBaikePhoto(name, usr="local"):
     '''接收中文姓名，返回对应百度百科的第一张图片'''
     bsObj = getBeautifulSoupObj(name)
     if bsObj == None:
-        return -1
+        return None
     try:
         photourl = str(bsObj.find("div", {"class": "summary-pic"}).find("img")).split("\"")[1]
     except AttributeError:
-        return -1
+        return None
     urlretrieve(photourl, "data/"+usr+"/img.jpg")
-    return 0
+    return "data/"+usr+"/img.jpg"
 
 if __name__ == "__main__":
     name = input("Baike: ")
-    getBaikeText(name)
-    getgBaikePhoto(name)
+    print(getBaikeText(name))
+    print(getgBaikePhoto(name))
     print("finish")

@@ -2,6 +2,7 @@
 import itchat
 import cloud
 import music
+import baike
 import os, shutil
 
 users = {}
@@ -16,7 +17,7 @@ wrong = "输入错误，请重试"
 sorry = "抱歉，词云生成失败，请更换条件"
 askChange = "词云生成成功\n是否进入<自定义模式>进行进一步的修改（y/n），进入自定义将提供模板修改对应参数"
 model = "轮廓or颜色=轮廓\n轮廓阈值(0~1)=0.5\n屏蔽字=['首歌','其它什么词']\n背景色(0为白色，1为黑色)=0\n"
-bye = "感谢您的使用！\n输入‘07624’再次使用"
+bye = "感谢您的使用！"
 
 @itchat.msg_register(itchat.content.TEXT, isFriendChat=True)
 def text_reply(msg):
@@ -24,13 +25,17 @@ def text_reply(msg):
         msg['FromUserName'] = 'filehelper'
     user = msg['FromUserName']
     cont = msg['Content']
-    if ( cont=='07624'):
+    if (user == "@5447635807faded07343a2469f478ca103caa5e17e0b590d9e044fe3fb955c0a"):
+        itchat.send("滚蛋傻逼", toUserName=user)
+    if user in users.keys():
+        print(user+ " "+cont)
+    if ( cont.startswith('07624')):
         if not os.path.exists('data/'+user):
             os.makedirs('data/'+user)
             # shutil.copyfile('data/default.jpg','data/'+user+'/img.jpg') 
         users[user] = 100
         ifpic[user] = 'data/'+user+'/img.jpg'
-        print("HEY")
+        print(user+" "+cont)
         itchat.send(welcome,toUserName=user)
     elif (user in users.keys()) and (users[user]==100):
         if cont == '1':
@@ -42,10 +47,11 @@ def text_reply(msg):
         elif cont == '3':
             users[user] = 3
             itchat.send(step_3_1,toUserName=user)
-        else:
-            itchat.send(wrong,toUserName=user)
+        # else:
+        #     itchat.send(wrong,toUserName=user)
 
     elif (user in users.keys()) and (users[user]==1):
+        print(user+" "+cont)
         try:
             f = open('data/'+user+'/comment.txt', 'a+')
             f.seek(0)
@@ -57,19 +63,20 @@ def text_reply(msg):
             itchat.send(wrong, toUserName=user)
 
     elif (user in users.keys()) and (users[user]==11):
-        ifpic[user] = None
-        itchat.send(wait, toUserName=user)
-        try:
-            print(ifpic[user])
-            cloud.draw_wordcloud(file_name='data/'+user+'/comment.txt', usr=user,
-                masker=ifpic[user])
-            # itchat.send('@img@data/'+user+'/img.jpg' ,toUserName=user)
-            itchat.send('@img@data/'+user+'/result.jpg' ,toUserName=user)
-            itchat.send(askChange, toUserName=user)
-            users[user] = 99
-        except:
-            itchat.send('词云生成失败，请检查文本文件...', toUserName=user)
-            users[user] = 1
+        if cont=='n' or cont=='N':
+            ifpic[user] = None
+            itchat.send(wait, toUserName=user)
+            try:
+                print(ifpic[user])
+                cloud.draw_wordcloud(file_name='data/'+user+'/comment.txt', usr=user,
+                    masker=ifpic[user])
+                # itchat.send('@img@data/'+user+'/img.jpg' ,toUserName=user)
+                itchat.send('@img@data/'+user+'/result.jpg' ,toUserName=user)
+                itchat.send(askChange, toUserName=user)
+                users[user] = 99
+            except:
+                itchat.send('词云生成失败，请检查文本文件...', toUserName=user)
+                users[user] = 1
 
 
     elif (user in users.keys()) and (users[user]==2):
@@ -87,13 +94,29 @@ def text_reply(msg):
             except:
                 itchat.send(sorry,toUserName=user)
 
+    elif (user in users.keys()) and (users[user]==3):
+        itchat.send(wait,toUserName=user)
+        if baike.getBaikeText(cont,usr=user) == None:
+            itchat.send(sorry+'\n未找到关键词',toUserName=user)
+        else:
+            pic = baike.getgBaikePhoto(cont,usr=user)
+            try:
+                cloud.draw_wordcloud(file_name='data/'+user+'/comment.txt', usr=user,
+                    masker=pic)
+                if pic!=None:
+                    itchat.send('@img@'+pic ,toUserName=user)
+                itchat.send('@img@data/'+user+'/result.jpg' ,toUserName=user)
+                itchat.send(askChange,toUserName=user)
+                users[user] = 99
+            except:
+                itchat.send(sorry,toUserName=user)
+
     elif (user in users.keys()) and (users[user]==99):
         if (cont.lower().startswith('y')):
             itchat.send(model,toUserName=user)
             users[user] = 199
-        else:
+        elif (cont.lower().startswith('n')):
             itchat.send(bye,toUserName=user)
-            users[user] = 0
 
     elif (user in users.keys()) and (users[user]==199):
         contl = cont.split('\n')
@@ -143,9 +166,7 @@ def text_reply(msg):
         finally:
             itchat.send(ret, toUserName=user)
 
-    elif (user in users.keys()) and (users[user]==3):
-        print("")
-        # TODO
+
                 
 
 @itchat.msg_register(itchat.content.ATTACHMENT, isFriendChat=True)
