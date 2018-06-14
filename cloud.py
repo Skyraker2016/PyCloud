@@ -14,24 +14,33 @@ import numpy as np
 # 绘制词云
 def draw_wordcloud( file_name, background="white", font="简约字体.ttf", masker=None, stopword=[], masker_val=0.5,w=1000,h=1000,maxsize=None,fontstep=2, simple=True, usr='local'):
     #读入一个txt文件(尝试三种主流编码：utf-8, gbk, utf-16(unicode))
+    stopword.append("首歌")
     try:
         comment_text = open(file_name,'r',encoding="utf-8").read()
     except:
         try:
             comment_text = open(file_name,'r',encoding="gbk").read()
         except:
-            comment_text = open(file_name,'r',encoding="utf-16").read()
-
+            try:
+                comment_text = open(file_name,'r',encoding="utf-16").read()
+            except:
+                comment_text = open(file_name,'r',encoding='iso-8859-1').read()
     # 进行分词
     cut_text = " ".join(jieba.cut(comment_text))
 
     # 读取背景
     if (masker):
         im = Image.open(masker)
-        w, h = im.size
+        ww, hh = im.size
+        if ww<w:
+            h = w/ww*hh
+            ww = w
+        w = ww
+        h = hh
         if (simple):
             im = im.convert('L')
-            threshold  =  int(masker_val*255)
+            threshold  =  int(255*masker_val)
+            print("threshold="+str(threshold))
             table  =  []
             for  i  in  range( 256 ):
                 if  i  <  threshold:

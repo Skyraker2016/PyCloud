@@ -50,7 +50,11 @@ def get_json(url, params, encSecKey):
     }
     postdata = parse.urlencode(data).encode('utf8')
     req = request.Request(url, headers=headers, data=postdata)
-    rep = request.urlopen(req).read().decode('utf8')
+    try:
+        rep = request.urlopen(req).read().decode('utf8')
+    except:
+        print("get_json error")
+        return None
     json_dict=json.loads(rep)   #获取json
     return json_dict
 
@@ -60,7 +64,10 @@ def getcomment(id):
     pa = "{rid:\"\", offset:\"0\", total:\"true\", limit:\"20\", csrf_token:\"\"}"
     params = get_params(pa)
     sec = get_encSecKey()
-    js = get_json(url, params, sec)["hotComments"]
+    js = get_json(url, params, sec)
+    if js==None:
+        return ""
+    js = js["hotComments"]
     res = ""
     for i in js:
         res += i["content"]+"\n"
@@ -74,8 +81,13 @@ def getsinger(name):
     }
     postdata = parse.urlencode(data).encode('utf8')
     req = request.Request(url, headers=headers, data=postdata)
-    rep = request.urlopen(req).read().decode('utf8')
-    singer=json.loads(rep)["result"]["artists"][0]   #获取json
+    try:
+        rep = request.urlopen(req).read().decode('utf8')
+        singer=json.loads(rep)["result"]["artists"][0]   #获取json
+
+    except:
+        print("no such singer name "+name)
+        return None, None
     id = singer["id"]
     img = singer['img1v1Url']
     return id, img
@@ -87,7 +99,11 @@ def getalbumn(id):
     }
     postdata = parse.urlencode(data).encode('utf8')
     req = request.Request(url, headers=headers, data=postdata)
-    rep = request.urlopen(req).read().decode('utf8')
+    try:
+        rep = request.urlopen(req).read().decode('utf8')
+    except:
+        print("get_albumn error")
+        return None
     list = []
     albums = json.loads(rep)['hotAlbums']
     for alb in albums:
@@ -98,7 +114,11 @@ def getalbumn(id):
 def songsong(id, songs, lock):
     url = "http://music.163.com/api/album/"+str(id)
     req = request.Request(url, headers=headers)
-    rep = request.urlopen(req).read().decode('utf8')
+    try:
+        rep = request.urlopen(req).read().decode('utf8')
+    except:
+        print("get_song error")
+        return
     lock.acquire()
     for song in json.loads(rep)['album']['songs']:
         songs[song["name"]] = song["id"]
@@ -128,8 +148,12 @@ def singer_craw(name,usr='local'):
     f = None
 
     singerid,imgurl = getsinger(name)
+    if singerid == None:
+        return -1
     request.urlretrieve(imgurl, 'data/'+usr+'/img.jpg')
     albList = getalbumn(singerid)
+    if albList == None:
+        return -1
     songs = getsong(albList)
     threads = []
     f = open('data/'+usr+'/comment.txt','a+')
@@ -149,6 +173,7 @@ def singer_craw(name,usr='local'):
     
     print("finish "+name)
     f.close()
+    return 0
 
 
 

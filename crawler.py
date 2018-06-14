@@ -12,7 +12,7 @@ def getBeautifulSoupObj(name):
         return None
     return bsObj
 
-def getBaikeText(name):
+def getBaikeText(name, usr="local"):
     '''接收中文姓名，返回对应百度百科的文字信息，若无则返回0'''
     bsObj = getBeautifulSoupObj(name)
     if bsObj == None:
@@ -22,18 +22,25 @@ def getBaikeText(name):
     text = ""
     for i in range(len(paragraph)):
         text += paragraph[i].get_text()
-    f = open(name + ".txt", 'w', encoding = "UTF-8")
+    f = open("data/"+usr+"/comment.txt", 'w', encoding = "UTF-8")
     f.write(text)
     f.close()
     return text
 
-def getgBaikePhoto(name):
+def getgBaikePhoto(name, usr="local"):
     '''接收中文姓名，返回对应百度百科的第一张图片'''
     bsObj = getBeautifulSoupObj(name)
     if bsObj == None:
-        return None
+        return -1
     try:
         photourl = str(bsObj.find("div", {"class": "summary-pic"}).find("img")).split("\"")[1]
     except AttributeError:
-        return None
-    urlretrieve(photourl, name + ".jpg")
+        return -1
+    urlretrieve(photourl, "data/"+usr+"/img.jpg")
+    return 0
+
+if __name__ == "__main__":
+    name = input("Baike: ")
+    getBaikeText(name)
+    getgBaikePhoto(name)
+    print("finish")
