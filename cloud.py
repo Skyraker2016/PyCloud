@@ -10,11 +10,13 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 
+default_stop = ["首歌", "一个", "这是", "那么", "这么"]
 
 # 绘制词云
 def draw_wordcloud( file_name, background="white", font="简约字体.ttf", masker=None, stopword=[], masker_val=0.5,w=2000,h=2000,maxsize=None,fontstep=2, simple=True, usr='local'):
     #读入一个txt文件(尝试三种主流编码：utf-8, gbk, utf-16(unicode))
-    stopword.append("首歌")
+    for s in default_stop:
+        stopword.append(s)
     try:
         comment_text = open(file_name,'r',encoding="utf-8").read()
     except:

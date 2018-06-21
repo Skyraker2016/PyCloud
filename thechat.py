@@ -25,8 +25,6 @@ def text_reply(msg):
         msg['FromUserName'] = 'filehelper'
     user = msg['FromUserName']
     cont = msg['Content']
-    if (user == "@5447635807faded07343a2469f478ca103caa5e17e0b590d9e044fe3fb955c0a"):
-        itchat.send("滚蛋傻逼", toUserName=user)
     if user in users.keys():
         print(user+ " "+cont)
     if ( cont.startswith('07624')):
